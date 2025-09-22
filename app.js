@@ -22,6 +22,8 @@ let serverObj =  http.createServer(function(req,res){
 		case "/cancel":
 			cancel(urlObj.query,res);
 			break;
+		case "/check":
+			check(urlObj.query,res);			
 		default:
 			error(res,404,"pathname unknown");
 
@@ -29,20 +31,56 @@ let serverObj =  http.createServer(function(req,res){
 });
 
 function schedule(qObj,res) {
-	if (availableTimes[qObj.day].some(time => time == qObj.time))
-	{
+	if (availableTimes[qObj.day].some(time => time == qObj.time)) {
+	
+	 (availableTimes[qObj.day].filter(time => time != qObj.time)); //if there is a day and time being scheduled, 
+	//remove it from available times and return array
+	let appdetails = {name: qObj.name, day: qObj.day, time: qObj.time}; //store it in object  appdetails
+
+	appointments.push(appdetails); //push it to appointments
 		res.writeHead(200,{'content-type':'text/plain'});
 		res.write("scheduled");
 		res.end();
-	}
-	else 
+	} 
+
+	
+	else{ 
 		error(res,400,"Can't schedule");
 
  
 }
-
-function cancel(qObj) {
 }
+function cancel(qObj,res) {
+	
+let appdetails = {name: qObj.name, day: qObj.day, time: qObj.time}; //pop stored object out of appointments
+	appointments.pop(appdetails);
+	res.writeHead(200,{'content-type':'text/plain'});
+	res.write("appointment has been canceled");
+	res.end();
+
+	if (availableTimes[qObj.day].filter(time => time != qObj.time)){
+
+	 res.writeHead(200,{'content-type':'text/plain'});
+         res.write("appointment is not found");
+         res.end();
+}
+}
+
+function check(qObj,res){
+	
+if (qObj.day && qObj.time in availableTimes){ //if day and time are in array availabletimes, write "available"
+	res.writeHead(200,{'content-type':'text/plain'});
+          res.write("available");
+          res.end();
+}
+
+else{
+	res.writeHead(200,{'content-type':'text/plain'});
+           res.write("not available");
+           res.end();
+}
+}
+
 
 function error(response,status,message) {
 
